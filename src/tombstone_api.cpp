@@ -12,7 +12,10 @@
 
 namespace {
 
-constexpr const char *sdk_version = "0.9.1";
+// Kept in lockstep with project(... VERSION ...) in CMakeLists.txt BY HAND, and that has failed TWICE:
+// the changelog records this string pinned at "0.1.0" once and stuck at "0.8.0" once. Deriving it from
+// PROJECT_VERSION is the real fix; until then, bump both or ship a third wrong version.
+constexpr const char *sdk_version = "0.9.2";
 
 // The process-wide client. Entry points snapshot the shared_ptr under the
 // mutex and call outside it, so a long flush() neither blocks other calls nor

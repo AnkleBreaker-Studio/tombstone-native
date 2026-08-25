@@ -104,7 +104,11 @@ typedef struct tombstone_options {
      *  "staging", "dev"; clamped to 64). NULL/empty = unset (the server
      *  defaults to "production"). tombstone_set_environment() overrides this. */
     const char *environment;
-    /** Seconds between session heartbeats; clamped to [15, 600]. 0 = default (60). */
+    /** Seconds between session heartbeats; clamped to [15, 240]. 0 = default (60).
+     *  The ceiling is a BILLING constant, not a preference: the server merges
+     *  consecutive beats into one live session only while the gap stays under its
+     *  300s window, so a slower cadence shatters a continuous session into isolated
+     *  instants and the studio's monthly peak-CCU invoice comes out low. */
     int heartbeat_interval_s;
     /** Nonzero (default) = emit periodic session heartbeats. */
     int enable_heartbeats;
