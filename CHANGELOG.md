@@ -3,6 +3,25 @@
 All notable changes to the Tombstack Native SDK (the `tombstone_*` C ABI and
 the `tombstone` library name are stable — Tombstack is the product name).
 
+## [0.9.2] - 2026-08-25
+
+### Fixed — heartbeat ceiling lowered to 240s (behaviour change; no API/ABI change)
+
+- **`options.heartbeat_interval_s` is now clamped to `[15, 240]`, was `[15, 600]`.** The ceiling is a
+  BILLING constant, not a preference. The server merges consecutive beats into one live session only
+  while the gap stays under its 300s session window, so a 600s cadence shattered a continuously-online
+  player into isolated instants: concurrent sessions stopped overlapping, monthly **peak CCU** read low,
+  and the studio was invoiced on the low figure. An integrator raising the interval to cut telemetry
+  cost — explicitly permitted by the header's own comment — silently reduced their own bill.
+
+  This is bit-for-bit the defect the Unity SDK shipped in 0.19.3. The Tombstack repo's
+  `tests/heartbeat-cadence.test.ts` was written to stop it recurring, but read the C# source **only**,
+  so this SDK kept 600 with a green suite. That guard now parses the ceiling out of this repo's public
+  header as well, and asserts all three SDKs (Unity, Godot, native) agree.
+
+  A caller that passed a value above 240 gets 240 instead. Nothing else about the cadence changes; the
+  default (60s) and the floor (15s) are untouched.
+
 ## [0.9.1] - 2026-07-20
 
 ### Hardening (production audit; no API/ABI change)

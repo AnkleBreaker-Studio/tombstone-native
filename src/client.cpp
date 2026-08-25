@@ -31,7 +31,18 @@ constexpr const char *metrics_batch_path = "/api/v1/ingest/metrics:batch";
 constexpr const char *pull_requests_path = "/api/v1/pull-requests";
 
 constexpr int min_heartbeat_interval_s = 15;
-constexpr int max_heartbeat_interval_s = 600;
+// 240, NOT 600 — the server's session window is 300s and this is a BILLING constant.
+//
+// computePeakConcurrency merges consecutive beats into one live span only while the gap is <= that
+// window. At 600s a player online for an hour produces six isolated instants instead of one span, so
+// concurrent players stop overlapping, the monthly PEAK CCU comes out low, and the studio is invoiced
+// on the low figure. Unity shipped exactly this (0.19.3, MAX_HEARTBEAT_INTERVAL_SECONDS = 600f) and
+// the Tombstack repo carries tests/heartbeat-cadence.test.ts to stop it recurring — but that guard read
+// the C# source only, which is why this side kept 600. It now reads the C header's range as well.
+//
+// The 20% headroom is deliberate: at exactly the window each beat expires as the next arrives, so any
+// scheduling jitter or upload latency opens a gap.
+constexpr int max_heartbeat_interval_s = 240;
 constexpr int default_heartbeat_interval_s = 60;
 
 constexpr const char *identity_file_name = "identity";
